@@ -367,6 +367,38 @@ for reward_type in ['sparse', 'dense']:
         max_episode_steps=50,
     )
 
+    # register(
+    #     id='FetchCatch{}-v1'.format(suffix),
+    #     entry_point='gym.envs.robotics:FetchCatchEnv',
+    #     kwargs=kwargs,
+    #     max_episode_steps=50,
+    # )
+
+    register(
+        id='FetchCatch{}-v1'.format(suffix),
+        entry_point='gym.envs.robotics:FetchCatchEnv',
+        max_episode_steps=250,
+        kwargs={**kwargs, **dict(
+            add_high_res_output=False,
+            no_movement=False,
+            stack_frames=False,
+            camera_3=False
+        )}
+    )
+
+    # add Catcher3d environment
+    register(
+        id='Catcher3d{}-v1'.format(suffix),
+        entry_point='gym.envs.robotics:Catcher3dEnv',
+        max_episode_steps=250,
+        kwargs={**kwargs, **dict(
+            add_high_res_output=False,
+            no_movement=False,
+            stack_frames=False,
+            camera_3=False
+        )}
+    )
+
     register(
         id='FetchPush{}-v1'.format(suffix),
         entry_point='gym.envs.robotics:FetchPushEnv',
