@@ -165,27 +165,81 @@ class RobotEnvM(gym.GoalEnv):
             self.viewer = None
             self._viewers = {}
 
-    def render(self, mode='human', width=DEFAULT_SIZE, height=DEFAULT_SIZE):
+    # def render(self, mode='human', width=DEFAULT_SIZE, height=DEFAULT_SIZE):
+    #     self._render_callback()
+    #     if mode == 'rgb_array': # get image data
+    #         self._get_viewer(mode).render(width, height)
+    #         # window size used for old mujoco-py:
+    #         data = self._get_viewer(mode).read_pixels(width, height, depth=False)
+    #         # original image is upside-down, so flip it
+    #         return data[::-1, :, :]
+    #     elif mode == 'human':
+    #         self._get_viewer(mode).render()
+    # add user defined camera name
+    def render(self, mode='human', width=DEFAULT_SIZE, height=DEFAULT_SIZE, camera_id=-1):
         self._render_callback()
         if mode == 'rgb_array': # get image data
-            self._get_viewer(mode).render(width, height)
+            # camera_id = None
+            # if camera_name in self.model.camera_names:
+                # camera_id = self.model.camera_name2id(camera_name)
+            self._get_viewer(mode).render(width, height, camera_id)
             # window size used for old mujoco-py:
             data = self._get_viewer(mode).read_pixels(width, height, depth=False)
             # original image is upside-down, so flip it
             return data[::-1, :, :]
+        elif mode == 'depth_array':
+            self._get_viewer(mode).render(width, height, camera_id)
+            data = self._get_viewer(mode).read_pixels(width, height, depth=True)[1]
+            return data[::-1, :]
         elif mode == 'human':
             self._get_viewer(mode).render()
+
+    # from mujoco_env
+    # def render_from_mujoco_env(self, mode='human', width=DEFAULT_SIZE, height=DEFAULT_SIZE):
+    #     if mode == 'rgb_array':
+    #         camera_id = None
+    #         camera_name = 'track'
+    #         # if self.rgb_rendering_tracking and camera_name in self.model.camera_names:
+    #             # camera_id = self.model.camera_name2id(camera_name)
+    #         self._get_viewer(mode).render(width, height, camera_id=camera_id)
+    #         # window size used for old mujoco-py:
+    #         data = self._get_viewer(mode).read_pixels(width, height, depth=False)
+    #         # original image is upside-down, so flip it
+    #         return data[::-1, :, :]
+    #     elif mode == 'depth_array':
+    #         self._get_viewer(mode).render(width, height)
+    #         # window size used for old mujoco-py:
+    #         # Extract depth part of the read_pixels() tuple
+    #         data = self._get_viewer(mode).read_pixels(width, height, depth=True)[1]
+    #         # original image is upside-down, so flip it
+    #         return data[::-1, :]
+    #     elif mode == 'human':
+    #         self._get_viewer(mode).render()
 
     def _get_viewer(self, mode):
         self.viewer = self._viewers.get(mode)
         if self.viewer is None:
             if mode == 'human':
                 self.viewer = mujoco_py.MjViewer(self.sim)
-            elif mode == 'rgb_array':
+            elif mode == 'rgb_array' or mode == 'depth_array': # add depth mode, similar with mujoco_env
                 self.viewer = mujoco_py.MjRenderContextOffscreen(self.sim, device_id=-1)
             self._viewer_setup()
             self._viewers[mode] = self.viewer
         return self.viewer
+
+    def _get_viewer_from_mujoco_env(self, mode):
+        self.viewer = self._viewers.get(mode)
+        if self.viewer is None:
+            if mode == 'human':
+                self.viewer = mujoco_py.MjViewer(self.sim)
+            elif mode == 'rgb_array' or mode == 'depth_array':
+                self.viewer = mujoco_py.MjRenderContextOffscreen(self.sim, -1)
+            self.viewer_setup()
+            self._viewers[mode] = self.viewer
+        return self.viewer
+
+
+
 
     # Extension methods
     # ----------------------------

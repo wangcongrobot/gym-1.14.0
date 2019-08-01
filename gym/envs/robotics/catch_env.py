@@ -5,6 +5,8 @@ from gym.utils.dm_utils.rewards import tolerance
 from copy import copy
 from collections import deque
 
+import matplotlib.pyplot as plot
+
 import mujoco_py
 
 def goal_distance(goal_a, goal_b):
@@ -229,7 +231,7 @@ class CatchEnv(robot_env_m.RobotEnvM):
 
     # catch env 20190730 23:16
     # use MjSim to get image
-    def _get_obs(self):
+    def _get_obs_catch_mjsim(self):
     
         # positions
         grip_pos = self.sim.data.get_site_xpos('robot0:grip')
@@ -326,7 +328,7 @@ class CatchEnv(robot_env_m.RobotEnvM):
         return out_dict
 
     # catch env 20190730 23:16
-    # use get_viewer to get image
+    # use get_viewer function to get image
     def _get_obs(self):
     
         # positions
@@ -364,18 +366,29 @@ class CatchEnv(robot_env_m.RobotEnvM):
         # def render(self, width=None, height=None, *, camera_name=None, depth=False,
         #     mode='offscreen', device_id=-1):
         # self.viewer = None
-        self.viewer = mujoco_py.MjViewer(self.sim)
+        # self.viewer = mujoco_py.MjViewer(self.sim)
         # self.viewer = mujoco_py.MjRenderContextOffscreen(self.sim, device_id=-1)
-        img = self.sim.render(width=84, height=84, mode='offscreen', camera_name='top_w', depth=False)
-        img = img[::-1, :, :] # why this?
+        # img = self.sim.render(width=84, height=84, mode='offscreen', camera_name='top_w', depth=False)
+
+        # Without the step, there will be a "GLEW initialization error". Issue has been submitted.
+        # self.viewer = mujoco_py.MjViewer(self.sim)
+        self.render('human')
+        img = self.render('rgb_array', 84, 84, camera_id=5)
+        # plot.imshow(img)
+        # plot.show()
+
+        # img = img[::-1, :, :] # why this?
 
         # self.renderer.render(84, 84, camera_id=4)
         # img_top = self.renderer.read_pixels(84, 84, depth=False)
         # img_top = img_top[::-1, :, :]
         # img = np.concatenate([img_top, img], axis=2)
-        img_top = self.sim.render(width=84, height=84, mode='offscreen', camera_name='top', depth=False)
-        img_top = img[::-1, :, :] # why this?
+        # img_top = self.sim.render(width=84, height=84, mode='offscreen', camera_name='top', depth=False)
+        # img_top = img[::-1, :, :] # why this?
+        img_top = self.render('rgb_array', 84, 84, camera_id=4)
         img = np.concatenate([img_top, img], axis=2)
+        # plot.imshow(img_top)
+        # plot.show()
 
         vec = np.concatenate([
             grip_pos, grip_velp, gripper_vel,
@@ -400,12 +413,15 @@ class CatchEnv(robot_env_m.RobotEnvM):
         if self.add_high_res_output:
             # self.renderer.render(512, 512, camera_id=3)
             # img_high = self.renderer.read_pixels(512, 512, depth=False)
-            img_high = img = self.sim.render(width=512, height=512, camera_name='top_w', depth=False)
+            # img_high = img = self.sim.render(width=512, height=512, camera_name='top_w', depth=False)
             # self.renderer.render(512, 512, camera_id=4)
             # img_top_high = self.renderer.read_pixels(512, 512, depth=False)
-            img_top_high = img = self.sim.render(width=512, height=512, camera_name='top', depth=False)
-            img_high = img_high[::-1, :, :]
-            img_top_high = img_top_high[::-1, :, :]
+            # img_top_high = img = self.sim.render(width=512, height=512, camera_name='top', depth=False)
+            # img_high = img_high[::-1, :, :]
+            # img_top_high = img_top_high[::-1, :, :]
+
+            img_high = self.render('rgb_array', 512, 512, camera_id=3)
+            img_top_high = self.render('rgb_array', 512, 512, camera_id=4)
 
             out_dict['image_high_res'] = img_high
             out_dict['image_top_high_res'] = img_top_high
@@ -413,15 +429,16 @@ class CatchEnv(robot_env_m.RobotEnvM):
         if self.camera_3:
             # self.renderer.render(512, 512, camera_id=5)
             # camera_3 = self.renderer.read_pixels(512, 512, depth=False)
-            camera_3 = img = self.sim.render(width=512, height=512, camera_name='fixed', depth=False)
-            camera_3 = camera_3[::-1, :, :]
+            # camera_3 = img = self.sim.render(width=512, height=512, camera_name='fixed', depth=False)
+            # camera_3 = camera_3[::-1, :, :]
+            camera_3 = self.render('rgb_array', 512, 512, camera_id=5)
             out_dict['image_camera_3'] = camera_3
 
         if self.stack_frames:
             out_dict['image'] = np.concatenate([out_dict['image'],
                                                 out_dict['last_image']], axis=-1)
 
-        return out_dict
+        return out_dict # observation_space
 
     def _viewer_setup(self):
         body_id = self.sim.model.body_name2id('robot0:gripper_link')
@@ -495,5 +512,5 @@ class CatchEnv(robot_env_m.RobotEnvM):
         if self.has_object:
             self.height_offset = self.sim.data.get_site_xpos('object0')[2]
 
-    def render(self, mode='human', width=500, height=500):
-        return super(CatchEnv, self).render(mode, width, height)
+    def render(self, mode='human', width=500, height=500, camera_id=-1):
+        return super(CatchEnv, self).render(mode, width, height, camera_id)
