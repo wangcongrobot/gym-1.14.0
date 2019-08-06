@@ -94,15 +94,15 @@ class CatchEnv(robot_env_m.RobotEnvM):
 
         reward = 0.25 * reward_dist
 
-        if self.sim.data.get_site_xpos('tar')[2] < 0.1:
+        if self.sim.data.get_site_xpos('tar')[2] < 0.1: # if z < 0.1, then drop out and restart
             self._restart_target()
 
         sparse_reward = 0.
         dist = np.linalg.norm(self.sim.data.get_site_xpos('robot0:grip') -
                               self.sim.data.get_site_xpos('tar'))
-        if dist < 0.05:
-            reward += 2.
-            sparse_reward += 1.
+        if dist < 0.05: # catch
+            reward += 4.
+            sparse_reward += 2.
             self._restart_target()
 
         reward += reward_ctrl
@@ -374,8 +374,8 @@ class CatchEnv(robot_env_m.RobotEnvM):
         # self.viewer = mujoco_py.MjViewer(self.sim)
         self.render('human')
         img = self.render('rgb_array', 84, 84, camera_id=5)
-        # plot.imshow(img)
-        # plot.show()
+        #plot.imshow(img)
+        #plot.show()
 
         # img = img[::-1, :, :] # why this?
 
@@ -387,8 +387,8 @@ class CatchEnv(robot_env_m.RobotEnvM):
         # img_top = img[::-1, :, :] # why this?
         img_top = self.render('rgb_array', 84, 84, camera_id=4)
         img = np.concatenate([img_top, img], axis=2)
-        # plot.imshow(img_top)
-        # plot.show()
+        #plot.imshow(img_top)
+        #plot.show()
 
         vec = np.concatenate([
             grip_pos, grip_velp, gripper_vel,

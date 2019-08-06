@@ -61,3 +61,45 @@ ERROR: GLEW initalization error: Missing GL version
 Wed Jul 31 19:27:35 2019
 ERROR: GLEW initalization error: Missing GL version
 
+Sat Aug  3 20:55:02 2019
+ERROR: Fixed camera id is outside valid range
+
+Sat Aug  3 20:56:04 2019
+ERROR: Fixed camera id is outside valid range
+
+Sat Aug  3 20:56:39 2019
+ERROR: Fixed camera id is outside valid range
+
+Sat Aug  3 20:56:54 2019
+ERROR: Fixed camera id is outside valid range
+
+Sat Aug  3 20:57:10 2019
+ERROR: Fixed camera id is outside valid range
+
+Sat Aug  3 20:57:46 2019
+ERROR: Fixed camera id is outside valid range
+
+Sat Aug  3 20:58:08 2019
+ERROR: Fixed camera id is outside valid range
+
+Sat Aug  3 20:58:31 2019
+ERROR: Fixed camera id is outside valid range
+
+Sat Aug  3 20:59:07 2019
+ERROR: Fixed camera id is outside valid range
+
+Sat Aug  3 20:59:41 2019
+ERROR: Fixed camera id is outside valid range
+
+Sat Aug  3 21:00:19 2019
+ERROR: Fixed camera id is outside valid range
+
+Sat Aug  3 21:01:44 2019
+ERROR: Fixed camera id is outside valid range
+
+Sun Aug  4 12:23:25 2019
+ERROR: Fixed camera id is outside valid range
+
+Sun Aug  4 12:24:41 2019
+ERROR: Fixed camera id is outside valid range
+

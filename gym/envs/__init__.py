@@ -386,6 +386,18 @@ for reward_type in ['sparse', 'dense']:
         )}
     )
 
+    register(
+        id='UR5Catch{}-v1'.format(suffix),
+        entry_point='gym.envs.robotics:UR5CatchEnv',
+        max_episode_steps=250,
+        kwargs={**kwargs, **dict(
+            add_high_res_output=False,
+            no_movement=False,
+            stack_frames=False,
+            camera_3=False
+        )}
+    )
+
     # add Catcher3d environment
     register(
         id='Catcher3d{}-v1'.format(suffix),

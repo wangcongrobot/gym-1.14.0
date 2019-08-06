@@ -19,3 +19,6 @@ from gym.envs.robotics.hand.manipulate_touch_sensors import HandPenTouchSensorsE
 from gym.envs.robotics.moving_target.catch import Catcher3dEnv
 
 from gym.envs.robotics.fetch.catch import FetchCatchEnv
+
+from gym.envs.robotics.ur5_gripper.ur5_catch import UR5CatchEnv
+from gym.envs.robotics.ur5_gripper_env import UR5GripperEnv
