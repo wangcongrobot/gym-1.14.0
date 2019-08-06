@@ -103,3 +103,6 @@ ERROR: Fixed camera id is outside valid range
 Sun Aug  4 12:24:41 2019
 ERROR: Fixed camera id is outside valid range
 
+Tue Aug  6 17:29:09 2019
+ERROR: GLEW initalization error: Missing GL version
+

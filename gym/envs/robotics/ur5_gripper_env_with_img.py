@@ -1,5 +1,3 @@
-# the ur5 and 3-finger gripper env, with no img
-
 import numpy as np
 
 from gym.envs.robotics import rotations, robot_env_m, utils
@@ -116,7 +114,6 @@ class UR5GripperEnv(robot_env_m.RobotEnvM):
         return reward, False, info
 
     # add new function for catch env
-    # random initial position and velocity for the target ball
     def _restart_target(self):
         target_x = self.np_random.uniform(low=0.52, high=0.84)
         target_y = self.np_random.uniform(low=-0.23, high=0.23)
@@ -145,7 +142,6 @@ class UR5GripperEnv(robot_env_m.RobotEnvM):
         self.sim.data.set_joint_qvel('tar:x', - v_x)
         self.sim.data.set_joint_qvel('tar:y', - v_y)
         self.sim.data.set_joint_qvel('tar:z', v_z)
-        print("tar:", y,z,v_x,v_y,v_z)
 
 
     # RobotEnv methods
@@ -160,27 +156,9 @@ class UR5GripperEnv(robot_env_m.RobotEnvM):
             # self.sim.data.set_joint_qpos('robot0:r_gripper_finger_joint', 0.)
             self.sim.forward()
 
-    def _set_action1(self, action):
-        assert action.shape == (self.n_actions,)
-        action = action.copy()  # ensure that we don't change the action outside of this scope
-        pos_ctrl, gripper_ctrl = action[:3], action[3]
-
-        pos_ctrl *= 0.05  # limit maximum change in position
-        rot_ctrl = [1., 0., 1., 0.]  # fixed rotation of the end effector, expressed as a quaternion
-        gripper_ctrl = np.array([gripper_ctrl, gripper_ctrl])
-        assert gripper_ctrl.shape == (2,)
-        if self.block_gripper:
-            gripper_ctrl = np.zeros_like(gripper_ctrl)
-        action = np.concatenate([pos_ctrl, rot_ctrl, gripper_ctrl])
-        print("action:", action)
-
-        # Apply action to simulation.
-        # utils.ctrl_set_action(self.sim, action)
-        # utils.mocap_set_action(self.sim, action)
-
     # change function for catch env
     def _set_action(self, action):
-        assert action.shape == (self.n_actions,) # 7
+        assert action.shape == (self.n_actions,)
 
         self.action = action
 
@@ -212,14 +190,13 @@ class UR5GripperEnv(robot_env_m.RobotEnvM):
             if self.block_gripper:
                 gripper_ctrl = np.zeros_like(gripper_ctrl)
             action = np.concatenate([pos_ctrl, rot_ctrl, gripper_ctrl])
-            print("action:", action)
-            # print("action size:", action.size())
+
             # Apply action to simulation.
             utils.ctrl_set_action(self.sim, action)
             utils.mocap_set_action(self.sim, action)
         else:
             pass
-    # from the hand env
+
     def _set_action1(self, action):
         assert action.shape == (20,)
 
@@ -240,59 +217,124 @@ class UR5GripperEnv(robot_env_m.RobotEnvM):
         self.sim.data.ctrl[:] = actuation_center + action * actuation_range
         self.sim.data.ctrl[:] = np.clip(self.sim.data.ctrl, ctrlrange[:, 0], ctrlrange[:, 1])
 
+    # catch env 20190730 23:16
+    # use get_viewer function to get image
+    # from catch env
     def _get_obs(self):
+    
         # positions
-        # grip_pos - Position of the gripper given in 3 positional elements and 4 rotational elements
         grip_pos = self.sim.data.get_site_xpos('gripperpalm')
-        # print("grip_pos:", grip_pos)
         dt = self.sim.nsubsteps * self.sim.model.opt.timestep
-        # grip_velp - The velocity of gripper moving
         grip_velp = self.sim.data.get_site_xvelp('gripperpalm') * dt
-        # print("grip_velp:", grip_velp)
         robot_qpos, robot_qvel = utils.robot_get_obs(self.sim)
-        # print("sim.data.qpos:", self.sim.data.qpos)
-        # print("model.joint_name:", self.sim.model.joint_names)
-        # print("robot_qpos:", robot_qpos)
-        # print("robot_qvel:", robot_qvel)
         if self.has_object:
-            # object_pos - Position of the object with respect to the world frame
-            object_pos = self.sim.data.get_site_xpos('object0') 
-            # rotations object_rot - Yes. That is the orientation of the object with respect to world frame.
+            object_pos = self.sim.data.get_site_xpos('object0')
+            # rotations
             object_rot = rotations.mat2euler(self.sim.data.get_site_xmat('object0'))
-            # velocities object_velp - Positional velocity of the object with respect to the world frame
+            # velocities
             object_velp = self.sim.data.get_site_xvelp('object0') * dt
-            # object_velr - Rotational velocity of the object with respect to the world frame
             object_velr = self.sim.data.get_site_xvelr('object0') * dt
             # gripper state
-            # object_rel_pos - Position of the object relative to the gripper
             object_rel_pos = object_pos - grip_pos
             object_velp -= grip_velp
         else:
             object_pos = object_rot = object_velp = object_velr = object_rel_pos = np.zeros(0)
-        # gripper_state - No. It's not 0/1 signal, it is a float value and varies from 0 to 0.2 
-        # for fetch robot. This varied gripper state helps in grasping different sized 
-        # object with different strengths.
-        # gripper_state - The quantity to measure the opening of gripper
         gripper_state = robot_qpos[-2:]
-        # gripper_vel - The velocity of gripper opening/closing
         gripper_vel = robot_qvel[-2:] * dt  # change to a scalar if the gripper is made symmetric
 
         if not self.has_object:
             achieved_goal = grip_pos.copy()
         else:
             achieved_goal = np.squeeze(object_pos.copy())
-        obs = np.concatenate([
-            grip_pos, object_pos.ravel(), object_rel_pos.ravel(), gripper_state, object_rot.ravel(),
-            object_velp.ravel(), object_velr.ravel(), grip_velp, gripper_vel,
+
+        # self.renderer.render(84, 84, camera_id=3)
+        # img = self.renderer.read_pixels(84, 84, depth=False)
+        # img = img[::-1, :, :]
+        
+        # new function to get image form mujoco render
+        # from robot_env_m
+        # self.sim = mujoco_py.MjSim(model, nsubsteps=n_substeps)
+        # def render(self, width=None, height=None, *, camera_name=None, depth=False,
+        #     mode='offscreen', device_id=-1):
+        # self.viewer = None
+        # self.viewer = mujoco_py.MjViewer(self.sim)
+        # self.viewer = mujoco_py.MjRenderContextOffscreen(self.sim, device_id=-1)
+        # img = self.sim.render(width=84, height=84, mode='offscreen', camera_name='top_w', depth=False)
+
+        # Without the step, there will be a "GLEW initialization error". Issue has been submitted.
+        # self.viewer = mujoco_py.MjViewer(self.sim)
+        self.render('human')
+        img = self.render('rgb_array', 84, 84, camera_id=0) # catch camera_id 5
+        # img = self.render('rgb_array', 84, 84)
+        # plot.imshow(img)
+        # plot.show()
+
+        # img = img[::-1, :, :] # why this?
+
+        # self.renderer.render(84, 84, camera_id=4)
+        # img_top = self.renderer.read_pixels(84, 84, depth=False)
+        # img_top = img_top[::-1, :, :]
+        # img = np.concatenate([img_top, img], axis=2)
+        # img_top = self.sim.render(width=84, height=84, mode='offscreen', camera_name='top', depth=False)
+        # img_top = img[::-1, :, :] # why this?
+        # img_top = self.render('rgb_array', 84, 84, camera_id=4) # catch camera_id 4
+        img_top = self.render('rgb_array', 84, 84)
+        img = np.concatenate([img_top, img], axis=2)
+        # plot.imshow(img_top)
+        # plot.show()
+
+        vec = np.concatenate([
+            grip_pos, grip_velp, gripper_vel,
         ])
 
-        return {
-            # 'observation': robot_qvel.copy(),
-            'observation': obs.copy(),
+        out_dict = {
+            'image': img,
+            'vector': vec,
             'achieved_goal': achieved_goal.copy(),
             'desired_goal': self.goal.copy(),
         }
 
+        if self.last_img is not None:
+            out_dict['last_image'] = copy(self.last_img)
+            out_dict['last_vector'] = copy(self.last_vec)
+        else:
+            out_dict['last_image'] = copy(img)
+            out_dict['last_vector'] = copy(vec)
+        self.last_img = img
+        self.last_vec = vec
+
+        if self.add_high_res_output:
+            # self.renderer.render(512, 512, camera_id=3)
+            # img_high = self.renderer.read_pixels(512, 512, depth=False)
+            # img_high = img = self.sim.render(width=512, height=512, camera_name='top_w', depth=False)
+            # self.renderer.render(512, 512, camera_id=4)
+            # img_top_high = self.renderer.read_pixels(512, 512, depth=False)
+            # img_top_high = img = self.sim.render(width=512, height=512, camera_name='top', depth=False)
+            # img_high = img_high[::-1, :, :]
+            # img_top_high = img_top_high[::-1, :, :]
+
+            # img_high = self.render('rgb_array', 512, 512, camera_id=3)
+            # img_top_high = self.render('rgb_array', 512, 512, camera_id=4)
+            img_high = self.render('rgb_array', 512, 512)
+            img_top_high = self.render('rgb_array', 512, 512)
+
+            out_dict['image_high_res'] = img_high
+            out_dict['image_top_high_res'] = img_top_high
+
+        if self.camera_3:
+            # self.renderer.render(512, 512, camera_id=5)
+            # camera_3 = self.renderer.read_pixels(512, 512, depth=False)
+            # camera_3 = img = self.sim.render(width=512, height=512, camera_name='fixed', depth=False)
+            # camera_3 = camera_3[::-1, :, :]
+            # camera_3 = self.render('rgb_array', 512, 512, camera_id=5)
+            camera_3 = self.render('rgb_array', 512, 512)
+            out_dict['image_camera_3'] = camera_3
+
+        if self.stack_frames:
+            out_dict['image'] = np.concatenate([out_dict['image'],
+                                                out_dict['last_image']], axis=-1)
+
+        return out_dict # observation_space
 
     def _viewer_setup(self):
         body_id = self.sim.model.body_name2id('gripperpalm')

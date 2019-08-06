@@ -86,23 +86,33 @@ class FetchEnv(robot_env.RobotEnv):
 
     def _get_obs(self):
         # positions
+        # grip_pos - Position of the gripper given in 3 positional elements and 4 rotational elements
         grip_pos = self.sim.data.get_site_xpos('robot0:grip')
         dt = self.sim.nsubsteps * self.sim.model.opt.timestep
+        # grip_velp - The velocity of gripper moving
         grip_velp = self.sim.data.get_site_xvelp('robot0:grip') * dt
         robot_qpos, robot_qvel = utils.robot_get_obs(self.sim)
         if self.has_object:
-            object_pos = self.sim.data.get_site_xpos('object0')
-            # rotations
+            # object_pos - Position of the object with respect to the world frame
+            object_pos = self.sim.data.get_site_xpos('object0') 
+            # rotations object_rot - Yes. That is the orientation of the object with respect to world frame.
             object_rot = rotations.mat2euler(self.sim.data.get_site_xmat('object0'))
-            # velocities
+            # velocities object_velp - Positional velocity of the object with respect to the world frame
             object_velp = self.sim.data.get_site_xvelp('object0') * dt
+            # object_velr - Rotational velocity of the object with respect to the world frame
             object_velr = self.sim.data.get_site_xvelr('object0') * dt
             # gripper state
+            # object_rel_pos - Position of the object relative to the gripper
             object_rel_pos = object_pos - grip_pos
             object_velp -= grip_velp
         else:
             object_pos = object_rot = object_velp = object_velr = object_rel_pos = np.zeros(0)
+        # gripper_state - No. It's not 0/1 signal, it is a float value and varies from 0 to 0.2 
+        # for fetch robot. This varied gripper state helps in grasping different sized 
+        # object with different strengths.
+        # gripper_state - The quantity to measure the opening of gripper
         gripper_state = robot_qpos[-2:]
+        # gripper_vel - The velocity of gripper opening/closing
         gripper_vel = robot_qvel[-2:] * dt  # change to a scalar if the gripper is made symmetric
 
         if not self.has_object:

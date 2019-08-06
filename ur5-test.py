@@ -6,8 +6,9 @@ mode = 'human'
 
 env = gym.make("UR5Catch-v1")
 #env = gym.make('FetchSlide-v1')
+
+env.render('human')
 #env = gym.wrappers.Monitor(env, './video', force=True)
-#env.render('human')
 #plt.imshow(env.render(mode='rgb_array', camera_id=-1))
 #plt.show()
 for i in range(20):
@@ -15,10 +16,12 @@ for i in range(20):
   env.render('human')
   for i in range(200):
     action = env.action_space.sample()
+    print("action_space:", env.action_space)
+    print("action space sample:", action)
     obs, reward, done, info = env.step(action)
-    print(obs)
-    print(reward)
-    print(done)
-    print(info)
+    print("observation:", obs)
+    print("reward:", reward)
+    print("done:", done)
+    print("info:", info)
     env.render('human')
 

@@ -30,15 +30,15 @@ class UR5CatchEnv(ur5_gripper_env.UR5GripperEnv, utils.EzPickle):
     def __init__(self, reward_type='sparse',
                  add_high_res_output=False, no_movement=False, stack_frames=False, camera_3=False):
         initial_qpos = {
-            # 'robot0:slide0': 0.4049,
-            # 'robot0:slide1': 0.48,
-            # 'robot0:slide2': 0.0,
-            'shoulder_pan_joint': 0.0, 
-            'shoulder_lift_joint': 0.0, 
-            'elbow_joint': 0.0, 
-            'wrist_1_joint': 0.0, 
-            'wrist_2_joint': 0.0, 
-            'wrist_3_joint': 0.0
+            'robot0:slide0': 0.4049,
+            'robot0:slide1': 0.48,
+            'robot0:slide2': 0.0,
+            # 'shoulder_pan_joint': 1.57, 
+            # 'shoulder_lift_joint': 1.57, 
+            # 'elbow_joint': 1.57, 
+            # 'wrist_1_joint': -1.57, 
+            # 'wrist_2_joint': 1.57, 
+            # 'wrist_3_joint': 1.57
         }
         ur5_gripper_env.UR5GripperEnv.__init__(
             self, MODEL_XML_PATH, has_object=False, block_gripper=True, n_substeps=20,

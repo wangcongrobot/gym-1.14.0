@@ -4,7 +4,7 @@ from gym.envs.robotics import fetch_env
 
 
 # Ensure we get the path separator correct on windows
-MODEL_XML_PATH = os.path.join('ur5gripper', 'UR5gripper.xml')
+MODEL_XML_PATH = os.path.join('fetch', 'reach.xml')
 
 
 class FetchReachEnv(fetch_env.FetchEnv, utils.EzPickle):
